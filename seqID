@@ -1,0 +1,40 @@
+class StringSequenceIDField(models.Field):
+    def __init__(self, prefix, *args, **kwargs):
+        self.prefix = prefix
+        super().__init__(*args, **kwargs)
+
+    def db_type(self, connection):
+        return 'text'
+
+    def get_prep_value(self, value):
+        return str(value)
+
+    def to_python(self, value):
+        return str(value)
+
+    def from_db_value(self, value, expression, connection):
+        return str(value)
+
+    def get_db_prep_save(self, value, connection):
+        return str(value)
+
+    def pre_save(self, model_instance, add):
+        if add and not getattr(model_instance, self.attname):
+            sequence_id = self.generate_sequence_id()
+            setattr(model_instance, self.attname, sequence_id)
+            return sequence_id
+        else:
+            return super().pre_save(model_instance, add)
+
+    def generate_sequence_id(self):
+        # Implement your logic to generate the sequence ID
+        # Example: Concatenate the prefix with a numeric value
+        last_sequence_id = MyModel.objects.order_by('-sequence_id').values_list('sequence_id', flat=True).first()
+        if last_sequence_id is None:
+            sequence_number = 1
+        else:
+            sequence_number = int(last_sequence_id.split('-')[-1]) + 1
+        return f'{self.prefix}-{sequence_number}'
+
+class MyModel(models.Model):
+    sequence_id = StringSequenceIDField(prefix='SEQ', primary_key=True)
