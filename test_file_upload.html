@@ -1,0 +1,215 @@
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css">
+
+<!-- SweetAlert2 JS and its dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8.2.0/dist/polyfill.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.all.min.js"></script>
+
+<style>
+  /* Custom CSS to center the progress bar */
+  .swal2-progress-steps {
+    display: flex;
+    justify-content: center;
+  }
+</style>
+
+<script>
+  // Show SweetAlert2 with file upload form
+  function showFileUploadForm() {
+    // Create a custom file input element using jQuery
+    const fileInput = $('<input type="file" id="file-input" name="file" style="display: none;">');
+
+    // Create a progress bar element
+    const progressBar = $('<progress value="0" max="100" style="display: none;margin-left: 30%;"></progress>');
+
+    // Create a file size element
+    const fileSize = $('<span style="display: none;left: 50%;"></span>');
+
+    // Create a filename element
+    const fileName = $('<span style="display: none;left: 50%;"></span>');
+
+    // Create the SweetAlert2 dialog
+    Swal.fire({
+      title: 'File Upload',
+      html: `
+        <label for="file-input">Select a file:</label>
+        <input type="file" id="file-input" name="file" style="">
+        <br>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Upload',
+      preConfirm: () => {
+        return new Promise((resolve) => {
+          // Perform the file upload or validation here
+          const selectedFile = $('#file-input')[0].files[0];
+          if (selectedFile) {
+            // Display the progress bar, file size, and filename elements
+            progressBar.show();
+            //fileSize.show();
+            //fileName.show();
+
+            // Get the file size in MB
+            const fileSizeInMB = (selectedFile.size / (1024 * 1024)).toFixed(2);
+
+            // Display the file size and filename
+            fileSize.text(`File Size: ${fileSizeInMB} MB`);
+            fileName.text(`File Name: ${selectedFile.name}`);
+
+            // Simulate file upload progress
+            const progressInterval = setInterval(() => {
+              const progress = Math.min(progressBar.val() + 1, 100);
+              progressBar.val(progress);
+              if (progress === 100) {
+                clearInterval(progressInterval);
+                resolve();
+              }
+            }, 50);
+          } else {
+            Swal.showValidationMessage('Please select a file.');
+            resolve(false);
+          }
+        });
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        //Swal.fire('File uploaded successfully!', '', 'success');
+      }
+    });
+
+
+
+    // Append the file input, progress bar, file size, and filename elements to the SweetAlert2 dialog
+    //Swal.getPopup().appendChild(fileInput[0]);
+    Swal.getPopup().appendChild(progressBar[0]);
+    Swal.getPopup().appendChild(fileSize[0]);
+    Swal.getPopup().appendChild(fileName[0]);
+  }
+</script>
+
+<!-- HTML button to call the function -->
+<button onclick="showFileUploadForm()">Upload File</button>
+
+
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css">
+
+<!-- SweetAlert2 JS and its dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8.2.0/dist/polyfill.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.all.min.js"></script>
+
+<style>
+  /* Custom CSS to center the progress bar */
+  .swal2-progress-steps {
+    display: flex;
+    justify-content: center;
+  }
+</style>
+
+<script>
+  // Show SweetAlert2 with file upload form
+  function showFileUploadForm() {
+    // Create a custom file input element using jQuery
+    const fileInput = $('<input type="file" id="file-input" name="file" style="display: none;">');
+
+    // Create a progress bar element
+    const progressBar = $('<progress value="0" max="100" style="display: none;"></progress>');
+
+    // Create a file size element
+    const fileSize = $('<span style="display: none;"></span>');
+
+    // Create a filename element
+    const fileName = $('<span style="display: none;"></span>');
+
+    // Create the SweetAlert2 dialog
+    Swal.fire({
+      title: 'File Upload',
+      html: `
+        <label for="file-input">Select a file:</label>
+        <button type="button" id="select-file-btn">Choose File</button>
+        <br>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Upload',
+      preConfirm: () => {
+        return new Promise((resolve) => {
+          // Perform the file upload using AJAX
+          const selectedFile = $('#file-input')[0].files[0];
+          if (selectedFile) {
+            // Display the progress bar, file size, and filename elements
+            progressBar.show();
+            fileSize.show();
+            fileName.show();
+
+            // Get the file size in MB
+            const fileSizeInMB = (selectedFile.size / (1024 * 1024)).toFixed(2);
+
+            // Display the file size and filename
+            fileSize.text(`File Size: ${fileSizeInMB} MB`);
+            fileName.text(`File Name: ${selectedFile.name}`);
+
+            // Create a new FormData object to send the file via AJAX
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            // Perform the AJAX file upload
+            $.ajax({
+              url: 'YOUR_UPLOAD_URL', // Replace with your server-side file upload endpoint
+              type: 'POST',
+              data: formData,
+              contentType: false,
+              processData: false,
+              xhr: () => {
+                const xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener('progress', (e) => {
+                  if (e.lengthComputable) {
+                    const progress = (e.loaded / e.total) * 100;
+                    progressBar.val(progress);
+                  }
+                });
+                return xhr;
+              },
+              success: (data) => {
+                // File upload success
+                progressBar.val(100);
+                resolve();
+              },
+              error: (xhr, status, error) => {
+                // File upload error
+                Swal.showValidationMessage('File upload failed. Please try again.');
+                resolve(false);
+              },
+            });
+          } else {
+            Swal.showValidationMessage('Please select a file.');
+            resolve(false);
+          }
+        });
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire('File uploaded successfully!', '', 'success');
+      }
+    });
+
+    // Trigger the file input click event when the custom button is clicked using jQuery
+    $('#select-file-btn').on('click', () => {
+      $('#file-input').click();
+    });
+
+    // Append the file input, progress bar, file size, and filename elements to the SweetAlert2 dialog
+    Swal.getPopup().appendChild(fileInput[0]);
+    Swal.getPopup().appendChild(progressBar[0]);
+    Swal.getPopup().appendChild(fileSize[0]);
+    Swal.getPopup().appendChild(fileName[0]);
+  }
+</script>
+
+<!-- HTML button to call the function -->
+<button onclick="showFileUploadForm()">Upload File</button>
