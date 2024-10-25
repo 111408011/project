@@ -31,17 +31,19 @@ public class JsonNullObjectRemover {
 
 
 private static void removeNullNodes(JsonNode node) {
-  if (node.isObject()) {
-    List<String> fieldNames = new ArrayList<>(node.fieldNames()); // Create a copy
-    for (String fieldName : fieldNames) {
-      JsonNode fieldNode = node.get(fieldName);
-      if (fieldNode.isNull() || fieldNode.isObject() && fieldNode.size() == 0) {
-        ((ObjectNode) node).remove(fieldName);
-      } else {
-        removeNullNodes(fieldNode);
-      }
+    if (node.isObject()) {
+        Iterator<String> fieldNames = node.fieldNames().iterator();
+        while (fieldNames.hasNext()) {
+            String fieldName = fieldNames.next();
+            JsonNode fieldNode = node.get(fieldName);
+            if (fieldNode.isNull() || fieldNode.isObject() && fieldNode.size() == 0) {
+                fieldNames.remove(); // Remove the field name from the iterator
+                ((ObjectNode) node).remove(fieldName); // Remove the field from the ObjectNode
+            } else {
+                removeNullNodes(fieldNode);
+            }
+        }
+    } else if (node.isArray()) {
+        // ... (rest of the code for arrays remains the same)
     }
-  } else if (node.isArray()) {
-    // ... (rest of the code for arrays remains the same)
-  }
 }
