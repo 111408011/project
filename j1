@@ -1,0 +1,39 @@
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import java.io.IOException;
+
+public class JsonCleaner {
+
+    public static void main(String[] args) throws IOException {
+        String jsonString = "{\"name\": \"John\", \"age\": null, \"address\": {}, \"phoneNumbers\": []}";
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonNode = mapper.readTree(jsonString);
+        JsonNode cleanedJson = removeEmptyOrNull(jsonNode);
+        System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(cleanedJson));
+    }
+
+    public static JsonNode removeEmptyOrNull(JsonNode node) {
+        if (node.isObject()) {
+            ObjectNode objectNode = (ObjectNode) node;
+            objectNode.fields().forEachRemaining(entry -> {
+                JsonNode childNode = entry.getValue();
+                if (childNode.isNull() || (childNode.isObject() && childNode.isEmpty()) || 
+                    (childNode.isArray() && childNode.isEmpty())) {
+                    objectNode.remove(entry.getKey());
+                } else {
+                    removeEmptyOrNull(childNode);
+                }
+            });
+        } else if (node.isArray()) {
+            ArrayNode arrayNode = (ArrayNode) node;
+            arrayNode.removeIf(childNode -> childNode.isNull() || 
+                                      (childNode.isObject() && childNode.isEmpty()) || 
+                                      (childNode.isArray() && childNode.isEmpty()));
+            arrayNode.forEach(JsonCleaner::removeEmptyOrNull);
+        }
+        return node;
+    }
+}
