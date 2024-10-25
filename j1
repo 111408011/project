@@ -28,3 +28,20 @@ public class JsonNullObjectRemover {
         }
     }
 }
+
+
+private static void removeNullNodes(JsonNode node) {
+  if (node.isObject()) {
+    List<String> fieldNames = new ArrayList<>(node.fieldNames()); // Create a copy
+    for (String fieldName : fieldNames) {
+      JsonNode fieldNode = node.get(fieldName);
+      if (fieldNode.isNull() || fieldNode.isObject() && fieldNode.size() == 0) {
+        ((ObjectNode) node).remove(fieldName);
+      } else {
+        removeNullNodes(fieldNode);
+      }
+    }
+  } else if (node.isArray()) {
+    // ... (rest of the code for arrays remains the same)
+  }
+}
