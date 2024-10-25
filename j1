@@ -36,27 +36,23 @@ private static void removeNullNodes(JsonNode node) {
         while (fieldNames.hasNext()) {
             String fieldName = fieldNames.next();
             JsonNode fieldNode = node.get(fieldName);
-            removeNullNodes(fieldNode); // Recursively remove null nodes in child nodes
+            removeNullNodes(fieldNode);
 
-            // Check for empty object after recursive call
             if (fieldNode.isNull() || fieldNode.isObject() && fieldNode.size() == 0) {
                 fieldNames.remove();
                 ((ObjectNode) node).remove(fieldName);
             }
         }
     } else if (node.isArray()) {
-        for (int i = 0; i < node.size(); i++) {
-            removeNullNodes(node.get(i));
-        }
-        // Remove empty arrays
-        Iterator<JsonNode> arrayIterator = node.elements();
+        Iterator<JsonNode> arrayIterator = node.elements().iterator();
         while (arrayIterator.hasNext()) {
             JsonNode element = arrayIterator.next();
+            removeNullNodes(element);
+
             if (element.isNull() || element.isArray() && element.size() == 0) {
                 arrayIterator.remove();
-                ((ArrayNode) node).remove(i);
-                i--; // Adjust the index to account for removal
             }
         }
     }
 }
+
