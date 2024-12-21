@@ -1,36 +1,26 @@
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class ObjectMerger {
 
-    public static <T> T mergeObjects(T obj1, T obj2, T target) {
-        if (obj1 == null && obj2 == null) {
-            return target;
-        }
-
-        // Copy non-null properties from obj1 to target
-        if (obj1 != null) {
-            BeanUtils.copyProperties(obj1, target, getNullPropertyNames(obj1));
-        }
-
-        // Copy non-null properties from obj2 to target
-        if (obj2 != null) {
-            BeanUtils.copyProperties(obj2, target, getNullPropertyNames(obj2));
-        }
-
+    public <T> T mergeObjects(T target, T source) {
+        BeanUtils.copyProperties(source, target, getNullPropertyNames(source));
         return target;
     }
 
-    private static String[] getNullPropertyNames(Object source) {
-        return java.beans.Introspector.getBeanInfo(source.getClass(), Object.class).getPropertyDescriptors()
-                .stream()
-                .filter(pd -> {
-                    try {
-                        return pd.getReadMethod().invoke(source) == null;
-                    } catch (Exception e) {
-                        return false;
-                    }
-                })
-                .map(pd -> pd.getName())
-                .toArray(String[]::new);
+    private String[] getNullPropertyNames(Object source) {
+        final BeanWrapper src = new BeanWrapperImpl(source);
+        Set<String> emptyNames = new HashSet<>();
+        for (String propName : src.getPropertyDescriptors()) {
+            if (src.getPropertyValue(propName) == null) {
+                emptyNames.add(propName);
+            }
+        }
+        String[] result = new String[emptyNames.size()];
+        return emptyNames.toArray(result);
     }
 }
